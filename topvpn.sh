@@ -10,12 +10,13 @@
 
 dir=/opt/TopSAP
 
+# Start Client Server
+$dir/TopVPNhelper
+
 # Source config file if it exists
 if [ -f "$HOME/.topvpn.conf" ]; then
     source "$HOME/.topvpn.conf"
 fi
-
-$dir/TopVPNhelper
 
 # The topvpn binary reads the password from /dev/tty (not stdin),
 # so we need a PTY. Use expect to automate the interactive prompts.
