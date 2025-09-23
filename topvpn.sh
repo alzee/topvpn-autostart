@@ -2,64 +2,17 @@
 #
 # vim:ft=sh
 
-############### Variables ###############
-
-############### Functions ###############
-
 # Function to log messages with timestamp
 log_message() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a /tmp/topvpn_service.log
 }
 
-# Function to cleanup on exit
-cleanup() {
-    if [ -n "$HELPER_PID" ] && kill -0 $HELPER_PID 2>/dev/null; then
-        log_message "Stopping TopVPN helper (PID: $HELPER_PID)"
-        kill $HELPER_PID 2>/dev/null
-    fi
-}
-
-# Set up cleanup trap
-trap cleanup EXIT
-
-############### Main Part ###############
-
 log_message "Starting TopVPN auto-login service"
 
 dir=/opt/TopSAP
 
-# Start Client Server
-log_message "Starting TopVPN helper service..."
-if [ ! -f "$dir/TopVPNhelper" ]; then
-    log_message "Error: TopVPNhelper not found at $dir/TopVPNhelper"
-    exit 1
-fi
-
-# Start TopVPNhelper in background
-log_message "Launching TopVPNhelper from $dir/TopVPNhelper"
-nohup "$dir/TopVPNhelper" > /tmp/topvpn_helper.log 2>&1 &
-HELPER_PID=$!
-
-# Wait for the helper to start up (check if it's running and responsive)
-log_message "Waiting for TopVPN helper to initialize..."
-for i in {1..30}; do
-    if kill -0 $HELPER_PID 2>/dev/null; then
-        # Check if the helper is responsive by looking for expected output or process state
-        sleep 2
-        if [ $i -eq 30 ]; then
-            log_message "Warning: TopVPN helper started but may not be fully ready"
-        fi
-    else
-        log_message "Error: TopVPN helper failed to start"
-        log_message "Helper log contents:"
-        cat /tmp/topvpn_helper.log | while read line; do
-            log_message "  $line"
-        done
-        exit 1
-    fi
-done
-
-log_message "TopVPN helper service started successfully (PID: $HELPER_PID)"
+# TopVPNhelper is now managed by systemd service 
+log_message "TopVPN helper service is managed by systemd (topvpnhelper.service)"
 
 # Source config file if it exists
 if [ -f "$HOME/.topvpn.conf" ]; then
