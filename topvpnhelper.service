@@ -1,0 +1,18 @@
+[Unit]
+Description=TopVPN Helper Daemon
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/TopSAP/TopVPNhelper
+ExecStop=/usr/bin/pkill -f Top
+Restart=on-failure
+RestartSec=5
+# Ensure the binary exists before starting
+ExecStartPre=/usr/bin/test -x /opt/TopSAP/TopVPNhelper
+
+[Install]
+WantedBy=multi-user.target
+
+
