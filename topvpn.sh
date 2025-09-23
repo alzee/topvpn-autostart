@@ -8,10 +8,9 @@
 
 ############### Main Part ###############
 
-set -x
 dir=/opt/TopSAP
 
-# $dir/TopVPNhelper
+$dir/TopVPNhelper
 
 # The topvpn binary reads the password from /dev/tty (not stdin),
 # so we need a PTY. Use expect to automate the interactive prompts.
@@ -56,21 +55,18 @@ set timeout 90
 spawn /opt/TopSAP/topvpn login
 
 expect -re {Input your server address.*:}
-after 200
 send -- "$env(TOPVPN_HOST)\r"
 
 expect -re {Choose the Login_mode:}
-after 200
 send -- "1\r"
 
 expect -re {Please enter user and password:}
 
 expect -re {User:}
-after 200
 send -- "$env(TOPVPN_USER)\r"
 
 expect -re {Password:}
-after 200
+#after 200
 send -- "$env(TOPVPN_PASS)\r"
 
 # Handle possible follow-up prompts (certificate trust, OTP, etc.)
