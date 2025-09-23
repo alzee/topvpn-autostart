@@ -1,0 +1,19 @@
+[Unit]
+Description=TopVPN auto login
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+# Adjust as needed; password comes from ~/.topvpn_pass
+Environment=TOPVPN_HOST=61.136.168.4:19443
+Environment=TOPVPN_USER=nkkj-houfei
+# Optional debug: uncomment to enable
+# Environment=TOPVPN_DEBUG=1
+WorkingDirectory=/home/al/.local/bin
+ExecStart=/bin/bash /home/al/.local/bin/topvpn.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
