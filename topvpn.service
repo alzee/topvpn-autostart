@@ -1,7 +1,8 @@
 [Unit]
 Description=TopVPN auto login
-Wants=network-online.target topvpnhelper.service
 After=network-online.target topvpnhelper.service
+Requires=topvpnhelper.service
+PartOf=topvpnhelper.service
 
 [Service]
 Type=simple
