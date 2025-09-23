@@ -104,7 +104,6 @@ if {[info exists env(TOPVPN_DEBUG)] && $env(TOPVPN_DEBUG) ne ""} {
     exp_internal 1
     log_user 1
 }
-log_file -a ~/.topvpn.expect.log
 
 set timeout 90
 
