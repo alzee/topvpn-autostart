@@ -2,8 +2,8 @@
 #
 # vim:ft=sh
 
-cp topvpn.conf ~/.topvpn.conf # need edit
-touch ~/.topvpn_pass # need edit
+# cp topvpn.conf ~/.topvpn.conf # need edit
+# touch ~/.topvpn_pass # need edit
 
 mkdir -p ~/.config/systemd/user/
 
