@@ -41,16 +41,17 @@ if [ -z "$TOPVPN_PASS" ]; then
 fi
 
 # Export variables so expect can read via env(...)
-export TOPVPN_HOST TOPVPN_USER TOPVPN_PASS TOPVPN_DEBUG
+export TOPVPN_HOST TOPVPN_USER TOPVPN_PASS TOPVPN_DEBUG TOPVPN_OTP
 
 expect <<'EOF'
-# Enable debug if requested
+# Enable debug if requested and log transcript
 if {[info exists env(TOPVPN_DEBUG)] && $env(TOPVPN_DEBUG) ne ""} {
     exp_internal 1
     log_user 1
 }
+log_file -a ~/.topvpn.expect.log
 
-set timeout 60
+set timeout 90
 
 spawn /opt/TopSAP/topvpn login
 
@@ -72,8 +73,39 @@ expect -re {Password:}
 after 200
 send -- "$env(TOPVPN_PASS)\r"
 
-# Hand over control to user/terminal in case further prompts appear
-interact
+# Handle possible follow-up prompts (certificate trust, OTP, etc.)
+expect {
+    -re {(Verification|Verify|Dynamic|OTP|Two.*Factor|Double.*Factor).*:} {
+        if {[info exists env(TOPVPN_OTP)] && $env(TOPVPN_OTP) ne ""} {
+            after 200
+            send -- "$env(TOPVPN_OTP)\r"
+            exp_continue
+        } else {
+            puts "Extra verification required (OTP). Set TOPVPN_OTP to automate. Handing control to user."
+            interact
+        }
+    }
+    -re {(accept|trust|certificate).*(yes|no|y/n)} {
+        after 200
+        send -- "y\r"
+        exp_continue
+    }
+    -re {(Login success|Connected|Welcome).*$} {
+        # Successful indicators
+    }
+    -re {(Login failed|Invalid|Error).*$} {
+        # Failure indicators; fall through to user
+        puts "Login reported failure. Handing control to user."
+        interact
+    }
+    timeout {
+        puts "Timed out waiting after password. Handing control to user."
+        interact
+    }
+    eof {
+        # Process exited; nothing more to do
+    }
+}
 EOF
 
 # Previous attempts (stdin) won't work because password is read from /dev/tty:
