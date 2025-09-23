@@ -5,12 +5,15 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/opt/TopSAP/TopVPNhelper
-ExecStop=/usr/bin/pkill -f Top
+# Use bash to handle the execution more robustly
+ExecStart=/bin/bash -c 'cd /opt/TopSAP && chmod +x TopVPNhelper && ./TopVPNhelper'
+#ExecStop=/usr/bin/pkill -f Top
 Restart=on-failure
 RestartSec=5
-# Ensure the binary exists before starting
-ExecStartPre=/usr/bin/test -x /opt/TopSAP/TopVPNhelper
+# Run as root to ensure proper permissions
+User=root
+# Ensure the directory exists and is accessible
+ExecStartPre=/bin/bash -c 'test -d /opt/TopSAP && test -f /opt/TopSAP/TopVPNhelper'
 
 [Install]
 WantedBy=multi-user.target

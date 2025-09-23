@@ -1,8 +1,9 @@
 [Unit]
 Description=TopVPN auto login
 After=network-online.target topvpnhelper.service
-Requires=topvpnhelper.service
-PartOf=topvpnhelper.service
+Wants=network-online.target topvpnhelper.service
+#Requires=topvpnhelper.service
+#PartOf=topvpnhelper.service
 
 [Service]
 Type=simple
@@ -10,7 +11,7 @@ Type=simple
 # Optional debug: uncomment to enable
 # Environment=TOPVPN_DEBUG=1
 #WorkingDirectory=/home/al/.topvpn
-ExecStart=/home/al/.local/bin/topvpn.sh
+ExecStart=/home/al/.local/bin/topvpn
 Restart=on-failure
 RestartSec=5
 
