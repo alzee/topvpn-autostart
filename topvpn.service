@@ -10,6 +10,7 @@ Type=simple
 # Environment=TOPVPN_DEBUG=1
 #WorkingDirectory=/home/al/.topvpn
 ExecStart=/home/al/.local/bin/topvpn.sh
+ExecStop=/bin/bash -c '/opt/TopSAP/topvpn logout 2>/dev/null || true; pkill -f TopVPNhelper 2>/dev/null || true'
 Restart=on-failure
 RestartSec=5
 
