@@ -10,6 +10,11 @@
 
 dir=/opt/TopSAP
 
+# Source config file if it exists
+if [ -f "$HOME/.topvpn.conf" ]; then
+    source "$HOME/.topvpn.conf"
+fi
+
 $dir/TopVPNhelper
 
 # The topvpn binary reads the password from /dev/tty (not stdin),
