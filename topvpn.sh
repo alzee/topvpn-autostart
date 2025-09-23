@@ -31,7 +31,7 @@ if [ -z "$TOPVPN_HOST" ] || [ -z "$TOPVPN_USER" ]; then
 fi
 
 if [ -z "$TOPVPN_PASS" ] && [ -f "$HOME/.topvpn_pass" ]; then
-    TOPVPN_PASS=$(cat "$HOME/.topvpn_pass")
+    TOPVPN_PASS=$(< "$HOME/.topvpn_pass")
 fi
 
 if [ -z "$TOPVPN_PASS" ]; then
