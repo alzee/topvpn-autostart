@@ -8,8 +8,8 @@ Type=simple
 # Host and user are read from ~/.topvpn.conf (sourced by the script)
 # Optional debug: uncomment to enable
 # Environment=TOPVPN_DEBUG=1
-WorkingDirectory=/home/al/t
-ExecStart=/bin/bash /home/al/t/topvpn.sh
+#WorkingDirectory=/home/al/.topvpn
+ExecStart=/home/al/.local/bin/topvpn.sh
 Restart=on-failure
 RestartSec=5
 
