@@ -1,0 +1,20 @@
+[Unit]
+Description=TopVPN auto login (System-wide with env file)
+After=network-online.target topvpnhelper.service
+Wants=network-online.target topvpnhelper.service
+
+[Service]
+Type=simple
+# System-wide service - no user context
+User=root
+Group=root
+# Load environment from secure file
+EnvironmentFile=/etc/topvpn/topvpn.env
+# Optional debug: uncomment to enable
+# Environment=TOPVPN_DEBUG=1
+ExecStart=/usr/local/bin/topvpn-system
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

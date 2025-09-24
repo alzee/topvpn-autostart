@@ -1,0 +1,22 @@
+[Unit]
+Description=TopVPN auto login (System-wide)
+After=network-online.target topvpnhelper.service
+Wants=network-online.target topvpnhelper.service
+
+[Service]
+Type=simple
+# System-wide service - no user context
+User=root
+Group=root
+# Load credentials from systemd credential store
+LoadCredential=topvpn-host:/etc/topvpn/host
+LoadCredential=topvpn-user:/etc/topvpn/user
+LoadCredential=topvpn-pass:/etc/topvpn/pass
+# Optional debug: uncomment to enable
+# Environment=TOPVPN_DEBUG=1
+ExecStart=/usr/local/bin/topvpn-system
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

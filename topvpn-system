@@ -1,0 +1,131 @@
+#!/bin/bash
+#
+# System-wide TopVPN auto-login script
+# vim:ft=sh
+
+# Function to log messages with timestamp
+log_message() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a /var/log/topvpn_service.log
+}
+
+log_message "Starting TopVPN auto-login service (system-wide)"
+
+dir=/opt/TopSAP
+
+# TopVPNhelper is now managed by systemd service 
+log_message "TopVPN helper service is managed by systemd (topvpnhelper.service)"
+
+# Read credentials from systemd credential store
+if [ -f "$CREDENTIALS_DIRECTORY/topvpn-host" ]; then
+    TOPVPN_HOST=$(cat "$CREDENTIALS_DIRECTORY/topvpn-host")
+else
+    log_message "Error: TopVPN host credential not found"
+    exit 1
+fi
+
+if [ -f "$CREDENTIALS_DIRECTORY/topvpn-user" ]; then
+    TOPVPN_USER=$(cat "$CREDENTIALS_DIRECTORY/topvpn-user")
+else
+    log_message "Error: TopVPN user credential not found"
+    exit 1
+fi
+
+if [ -f "$CREDENTIALS_DIRECTORY/topvpn-pass" ]; then
+    TOPVPN_PASS=$(cat "$CREDENTIALS_DIRECTORY/topvpn-pass")
+else
+    log_message "Error: TopVPN password credential not found"
+    exit 1
+fi
+
+# Optional: Read OTP from credential store if available
+if [ -f "$CREDENTIALS_DIRECTORY/topvpn-otp" ]; then
+    TOPVPN_OTP=$(cat "$CREDENTIALS_DIRECTORY/topvpn-otp")
+fi
+
+if [ -z "$TOPVPN_HOST" ] || [ -z "$TOPVPN_USER" ] || [ -z "$TOPVPN_PASS" ]; then
+    log_message "Error: Required credentials are missing"
+    exit 1
+fi
+
+log_message "Starting TopVPN login process for user: $TOPVPN_USER at host: $TOPVPN_HOST"
+
+# Check if expect is available
+if ! command -v expect >/dev/null 2>&1; then
+    log_message "Error: 'expect' is required for non-interactive login. Install the 'expect' package."
+    exit 1
+fi
+
+# Export variables so expect can read via env(...)
+export TOPVPN_HOST TOPVPN_USER TOPVPN_PASS TOPVPN_DEBUG TOPVPN_OTP
+
+expect <<'EOF'
+# Enable debug if requested and log transcript
+if {[info exists env(TOPVPN_DEBUG)] && $env(TOPVPN_DEBUG) ne ""} {
+    exp_internal 1
+    log_user 1
+}
+
+set timeout 90
+
+spawn /opt/TopSAP/topvpn login
+
+expect -re {Input your server address.*:}
+send -- "$env(TOPVPN_HOST)\r"
+
+expect -re {Choose the Login_mode:}
+send -- "1\r"
+
+expect -re {Please enter user and password:}
+
+expect -re {User:}
+send -- "$env(TOPVPN_USER)\r"
+
+expect -re {Password:}
+send -- "$env(TOPVPN_PASS)\r"
+
+# Handle possible follow-up prompts (certificate trust, OTP, etc.)
+expect {
+    -re {(Verification|Verify|Dynamic|OTP|Two.*Factor|Double.*Factor).*:} {
+        if {[info exists env(TOPVPN_OTP)] && $env(TOPVPN_OTP) ne ""} {
+            after 200
+            send -- "$env(TOPVPN_OTP)\r"
+            exp_continue
+        } else {
+            puts "Extra verification required (OTP). Set TOPVPN_OTP to automate. Handing control to user."
+            interact
+        }
+    }
+    -re {(accept|trust|certificate).*(yes|no|y/n)} {
+        after 200
+        send -- "y\r"
+        exp_continue
+    }
+    -re {(Login success|Connected|Welcome).*$} {
+        # Successful indicators
+        puts "Login successful!"
+    }
+    -re {(Login failed|Invalid|Error).*$} {
+        # Failure indicators; fall through to user
+        puts "Login reported failure. Handing control to user."
+        interact
+    }
+    timeout {
+        puts "Timed out waiting after password. Handing control to user."
+        interact
+    }
+    eof {
+        # Process exited; nothing more to do
+        puts "TopVPN process ended."
+    }
+}
+EOF
+
+# Check if the expect script completed successfully
+if [ $? -eq 0 ]; then
+    log_message "TopVPN login process completed successfully"
+else
+    log_message "TopVPN login process failed or was interrupted"
+    exit 1
+fi
+
+log_message "TopVPN auto-login service finished"
