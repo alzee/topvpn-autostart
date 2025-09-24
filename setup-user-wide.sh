@@ -2,7 +2,7 @@
 #
 # vim:ft=sh
 
-if ! which expect 2> /dev/null; then
+if ! which expect &> /dev/null; then
     echo "Error: 'expect' is required for non-interactive login. Install the 'expect' package." >&2
     exit 1
 fi
