@@ -7,8 +7,17 @@ if ! which expect 2> /dev/null; then
     exit 1
 fi
 
-cp topvpn.conf ~/.topvpn.conf # need edit
-touch ~/.topvpn_pass # need edit
+# Prompt for credentials
+echo "Please enter your TopVPN credentials:"
+read -p "Host (host:port): " host
+read -p "Username: " user
+read -s -p "Password: " pass
+echo
+
+# Store credentials securely
+echo "TOPVPN_HOST=$host" > ~/.topvpn.conf
+echo "TOPVPN_USER=$user" >> ~/.topvpn.conf
+echo "$pass" > ~/.topvpn_pass
 
 mkdir -p ~/.config/systemd/user/
 

@@ -57,9 +57,12 @@ if [ "$setup_otp" = "y" ] || [ "$setup_otp" = "Y" ]; then
     fi
 fi
 
+cp topvpnhelper.service /etc/systemd/system/
+
 # Reload systemd and enable service
 systemctl daemon-reload
-systemctl enable topvpn-system.service
+systemctl enable --now topvpnhelper.service
+systemctl enable --now topvpn-system.service
 
 echo "System-wide TopVPN service has been configured!"
 echo "To start the service: sudo systemctl start topvpn-system"
